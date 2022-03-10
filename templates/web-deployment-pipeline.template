@@ -147,8 +147,13 @@ Resources:
                 - ls -al
                 - cd src
                 - ls -al
-                - sudo apt-get update && sudo apt-get install -y ruby ruby-dev && apt-get clean && sudo gem install compass
-                - sudo npm install && sudo npm install grunt-cli && sudo npm install bower
+                - apt-get update
+                - apt-get install -y ruby ruby-dev
+                - apt-get clean
+                - gem install compass
+                - npm install
+                - npm install grunt-cli
+                - npm install bower
                 - ./node_modules/bower/bin/bower install --allow-root
             build:
               commands:
@@ -170,7 +175,8 @@ Resources:
                 - echo BuildCompleted
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/nodejs:7.0.0
+        Image: aws/codebuild/standard:5.0
+        PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
         - Name: AWS_DEFAULT_REGION

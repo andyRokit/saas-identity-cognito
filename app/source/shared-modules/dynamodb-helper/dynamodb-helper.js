@@ -9,7 +9,14 @@ var configuration = configModule.configure(process.env.NODE_ENV);
 
 //Configure Logging
 const winston = require('winston');
-winston.level = configuration.loglevel;
+
+// Init the winston logger
+const logger = winston.createLogger({
+    level: configuration.loglevel,
+    transports: [
+        new winston.transports.Console()
+    ]
+});
 
 /**
  * Constructor function
@@ -34,7 +41,7 @@ DynamoDBHelper.prototype.query = function(searchParameters, credentials, callbac
         if(!error){
             docClient.query(searchParameters, function(err, data) {
                 if (err) {
-                    winston.error("Unable to query. Error:", JSON.stringify(err, null, 2));
+                    logger.error("Unable to query. Error:", JSON.stringify(err, null, 2));
                     callback(err);
                 } else {
                     callback(null, data.Items);
@@ -42,7 +49,7 @@ DynamoDBHelper.prototype.query = function(searchParameters, credentials, callbac
             });
         }
         else{
-            winston.error(error);
+            logger.error(error);
             callback(error);
         }
 
@@ -176,13 +183,13 @@ DynamoDBHelper.prototype.createTable = function(dynamodb, callback) {
    };
    dynamodb.describeTable(newTable, function (error, data) {
        if (!error) {
-           winston.debug("Table already exists: " + this.tableDefinition.TableName);
+           logger.debug("Table already exists: " + this.tableDefinition.TableName);
            callback(null);
        }
        else {
            dynamodb.createTable(this.tableDefinition, function (err, data) {
                if (err) {
-                   winston.error("Unable to create table: " + this.tableDefinition.TableName);
+                   logger.error("Unable to create table: " + this.tableDefinition.TableName);
                    callback(err);
                } else {
                    var tableName = {TableName: this.tableDefinition.TableName};
@@ -190,7 +197,7 @@ DynamoDBHelper.prototype.createTable = function(dynamodb, callback) {
                        if (err)
                            callback(err);
                        else {
-                           winston.debug("Created table. Table description JSON:", JSON.stringify(data, null, 2));
+                           logger.debug("Created table. Table description JSON:", JSON.stringify(data, null, 2));
                            callback(null);
                        }
                    });
@@ -215,7 +222,7 @@ DynamoDBHelper.prototype.tableExists = function(tableName, credentials) {
                 };
                 dynamodb.describeTable(newTable, function (error, data) {
                     if (error) {
-                        winston.error("Error describing table: ", error)
+                        logger.error("Error describing table: ", error)
                     }
                     else {
                         resolve(true);
@@ -223,7 +230,7 @@ DynamoDBHelper.prototype.tableExists = function(tableName, credentials) {
                 });
             })
             .catch(function (error) {
-                winston.error("Error describing table: ", error);
+                logger.error("Error describing table: ", error);
                 reject(error);
             });
     });

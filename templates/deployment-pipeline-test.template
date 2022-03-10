@@ -137,7 +137,7 @@ Resources:
                 - ls -al
                 - cd "${SERVICE_NAME}"
                 - ls -al
-                - $(aws ecr get-login)
+                - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
                 - TAG="$SERVICE_NAME"
             build:
               commands:
@@ -150,7 +150,8 @@ Resources:
             files: build.json
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/docker:1.12.1
+        Image: aws/codebuild/standard:5.0
+        PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
         - Name: AWS_DEFAULT_REGION
@@ -178,7 +179,8 @@ Resources:
           phases:
             pre_build:
               commands:
-                - sudo apt-get update && sudo apt-get install -y curl
+                - apt-get update
+                - apt-get install -y curl
             build:
               commands:
                 - echo $SERVICE_URL
@@ -194,7 +196,8 @@ Resources:
                 - curl -T body.json "${WAIT_HANDLE}"
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/ubuntu-base:14.04
+        Image: aws/codebuild/standard:5.0
+        PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
         - Name: AWS_DEFAULT_REGION

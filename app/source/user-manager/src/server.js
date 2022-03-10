@@ -4,10 +4,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const AWS = require('aws-sdk');
-const AmazonCognitoIdentity = require('amazon-cognito-identity-js');
-const request = require('request');
 const winston = require('winston');
 const async = require('async');
+const AxiosLogger = require('axios-logger');
+
+// Init axios
+const axios = require('axios').create();
+axios.interceptors.request.use(AxiosLogger.requestLogger);
+axios.interceptors.response.use(AxiosLogger.responseLogger);
 
 // Configure Environment
 const configModule = require('../shared-modules/config-helper/config.js');
@@ -18,8 +22,13 @@ const DynamoDBHelper = require('../shared-modules/dynamodb-helper/dynamodb-helpe
 const cognitoUsers = require('./cognito-user.js');
 
 
-// Init the winston log level
-winston.level = configuration.loglevel;
+// Init the winston logger
+const logger = winston.createLogger({
+    level: configuration.loglevel,
+    transports: [
+        new winston.transports.Console()
+    ]
+});
 
 //Variables that are provided through a token
 var bearerToken = '';
@@ -126,7 +135,7 @@ app.delete('/user/tables', function (req, res) {
  * Delete Infrastructure Created by Multi-tenant Identity Reference Architecture
  */
 app.delete('/user/tenants', function (req, res) {
-    winston.debug('Cleaning up Identity Reference Architecture: ');
+    logger.debug('Cleaning up Identity Reference Architecture: ');
 
     var input = {};
     tokenManager.getInfra(input, function (error, response) {
@@ -138,8 +147,8 @@ app.delete('/user/tenants', function (req, res) {
         else {
         var infra = response;
         var items = Object.keys(infra).length;
-        winston.debug(items + ' Tenants with Infrastructure');
-        winston.debug('-------------------------------------');
+        logger.debug(items + ' Tenants with Infrastructure');
+        logger.debug('-------------------------------------');
         var pool = "";
         var i;
         // process each item in series
@@ -203,7 +212,7 @@ app.delete('/user/tenants', function (req, res) {
         }, function (err) {
             // if err is not nil, return 400
             if (err) {
-                winston.debug(err)
+                logger.debug(err)
                 res.status(400).send(err);
                 return;
             }
@@ -217,7 +226,7 @@ app.delete('/user/tenants', function (req, res) {
  * Lookup user pool for any user - no user data returned
  */
 app.get('/user/pool/:id', function (req, res) {
-    winston.debug('Looking up user pool data for: ' + req.params.id);
+    logger.debug('Looking up user pool data for: ' + req.params.id);
     tokenManager.getSystemCredentials(function (credentials) {
         lookupUserPoolData(credentials, req.params.id, null, true, function (err, user) {
             if (err) {
@@ -237,7 +246,7 @@ app.get('/user/pool/:id', function (req, res) {
  * Get user attributes
  */
 app.get('/user/:id', function (req, res) {
-    winston.debug('Getting user id: ' + req.params.id);
+    logger.debug('Getting user id: ' + req.params.id);
     tokenManager.getCredentialsFromToken(req, function (credentials) {
         // get the tenant id from the request
         var tenantId = tokenManager.getTenantId(req);
@@ -282,7 +291,7 @@ app.get('/users', function (req, res) {
 app.post('/user', function (req, res) {
     tokenManager.getCredentialsFromToken(req, function (credentials) {
         var user = req.body;
-        winston.debug('Creating user: ' + user.userName);
+        logger.debug('Creating user: ' + user.userName);
 
         // extract requesting user and role from the token
         var authToken = tokenManager.getRequestAuthToken(req);
@@ -298,11 +307,11 @@ app.post('/user', function (req, res) {
             if (!err) {
                 createNewUser(credentials, userPoolData.UserPoolId, userPoolData.IdentityPoolId, userPoolData.client_id, user.tenant_id, user)
                     .then(function(createdUser) {
-                        winston.debug('User ' + user.userName + ' created');
+                        logger.debug('User ' + user.userName + ' created');
                         res.status(200).send({status: 'success'});
                     })
                     .catch(function(err) {
-                        winston.error('Error creating new user in DynamoDB: ' + err.message);
+                        logger.error('Error creating new user in DynamoDB: ' + err.message);
                         res.status(400).send('{"Error" : "Error creating user in DynamoDB"}');
                     });
             }
@@ -337,7 +346,7 @@ app.post('/user/system', function (req, res) {
                 });
         }
         else{
-            winston.debug("Error Obtaining System Credentials");
+            logger.debug("Error Obtaining System Credentials");
         }
     });
 });
@@ -419,7 +428,7 @@ app.put('/user', function (req, res) {
 app.delete('/user/:id', function (req, res) {
     var userName = req.params.id;
     tokenManager.getCredentialsFromToken(req, function (credentials) {
-        winston.debug('Deleting user: ' + userName);
+        logger.debug('Deleting user: ' + userName);
 
         // get the tenant id from the request
         var tenantId = tokenManager.getTenantId(req);
@@ -436,7 +445,7 @@ app.delete('/user/:id', function (req, res) {
                 // first delete the user from Cognito
                 cognitoUsers.deleteUser(credentials, userName, userPool.UserPoolId, configuration.aws_region)
                     .then(function (result) {
-                        winston.debug('User ' + userName + ' deleted from Cognito');
+                        logger.debug('User ' + userName + ' deleted from Cognito');
 
                         // now delete the user from the user data base
                         var deleteUserParams = {
@@ -453,17 +462,17 @@ app.delete('/user/:id', function (req, res) {
                         // delete the user from DynamoDB
                         dynamoHelper.deleteItem(deleteUserParams, credentials, function (err, user) {
                             if (err) {
-                                winston.error('Error deleting DynamoDB user: ' + err.message);
+                                logger.error('Error deleting DynamoDB user: ' + err.message);
                                 res.status(400).send('{"Error" : "Error deleting DynamoDB user"}');
                             }
                             else {
-                                winston.debug('User ' + userName + ' deleted from DynamoDB');
+                                logger.debug('User ' + userName + ' deleted from DynamoDB');
                                 res.status(200).send({status: 'success'});
                             }
                         })
                     })
                     .catch(function (error) {
-                        winston.error('Error deleting Cognito user: ' + err.message);
+                        logger.error('Error deleting Cognito user: ' + err.message);
                         res.status(400).send('{"Error" : "Error deleting user"}');
                     });
             }
@@ -509,7 +518,7 @@ function provisionAdminUserWithRoles(user, credentials, adminPolicyName, userPol
     lookupUserPoolData(credentials, user.userName, user.tenant_id, true, function(err, userPoolData) {
         if (!err){
             callback( new Error ('{"Error" : "User already exists"}'));
-            winston.debug('{"Error" : "User already exists"}');
+            logger.debug('{"Error" : "User already exists"}');
         }
         else {
             // create the new user
@@ -658,7 +667,7 @@ function provisionAdminUserWithRoles(user, credentials, adminPolicyName, userPol
                     callback(null, returnObject)
                 })
                 .catch (function(err) {
-                    winston.debug(err)
+                    logger.debug(err)
                     callback(err);
                 });
         }
@@ -741,7 +750,7 @@ function lookupUserPoolData(credentials, userId, tenantId, isSystemContext, call
         // get the item from the database
         dynamoHelper.query(searchParams, credentials, function (err, users) {
             if (err) {
-                winston.error('Error getting user: ' + err.message);
+                logger.error('Error getting user: ' + err.message);
                 callback(err);
             }
             else {
@@ -764,7 +773,7 @@ function lookupUserPoolData(credentials, userId, tenantId, isSystemContext, call
         // get the item from the database
         dynamoHelper.getItem(searchParams, credentials, function (err, user) {
             if (err) {
-                winston.error('Error getting user: ' + err.message);
+                logger.error('Error getting user: ' + err.message);
                 callback(err);
             }
             else {

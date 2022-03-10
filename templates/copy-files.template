@@ -50,8 +50,6 @@
                     "app/packages/tenant-manager/tenant-manager.zip",
                     "app/packages/user-manager/user-manager.zip",
                     "templates/service.template.zip",
-                    "functions/packages/rest-request-create/rest-request-create.zip",
-                    "functions/packages/rest-request-delete/rest-request-delete.zip",
                     "functions/packages/custom-authorizer/custom-authorizer.zip"
                 ]
             }
@@ -61,7 +59,7 @@
             "Properties": {
                 "Description": "Copies objects from a source S3 bucket to a destination",
                 "Handler": "index.handler",
-                "Runtime": "python2.7",
+                "Runtime": "python3.9",
                 "Role": {
                     "Ref": "RoleArn"
                 },

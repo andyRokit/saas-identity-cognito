@@ -10,10 +10,11 @@
     "amazon-cognito-identity-js": "1.16.0",
     "amazon-cognito-js": "1.1.0",
     "aws-sdk": "2.24.0",
+    "axios": "^0.26.0",
+    "bad-request-error": "^1.0.2",
     "body-parser": "latest",
     "config": "1.25.1",
     "express": "latest",
-    "request": "2.81.0",
     "uuid": "3.0.1",
     "winston": "latest"
   },
@@ -26,5 +27,8 @@
       "name": "Judah Bernstein"
     }
   ],
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "axios-logger": "^2.6.0"
+  }
 }

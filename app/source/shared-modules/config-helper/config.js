@@ -3,6 +3,14 @@ var dev = config.get('Config.dev');
 var prod = config.get('Config.prod');
 const winston = require('winston');
 
+// Init the winston logger
+const logger = winston.createLogger({
+    level: prod.log.level,
+    transports: [
+        new winston.transports.Console()
+    ]
+});
+
 /**
  * Set Configuration of Application, and Environment
  * @param environment
@@ -26,7 +34,7 @@ module.exports.configure = function(environment) {
                 break;
             }
             else {
-                winston.debug('Currently Running in', + environment);
+                logger.debug('Currently Running in', + environment);
                 var port = prod.port;
                 var name = prod.name;
                 //var table = prod.table;

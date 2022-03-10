@@ -8,8 +8,13 @@ const winston = require('winston');
 const configModule = require('../shared-modules/config-helper/config.js');
 var configuration = configModule.configure(process.env.NODE_ENV);
 
-// Init the winston log level
-winston.level = configuration.level;
+// Init the winston logger
+const logger = winston.createLogger({
+    level: configuration.loglevel,
+    transports: [
+        new winston.transports.Console()
+    ]
+});
 
 /**
  * Create a Cognito user with custom attributes
@@ -89,7 +94,7 @@ module.exports.getCognitoUser = function (credentials, user, callback) {
     // get user data from Cognito
     cognitoidentityserviceprovider.adminGetUser(params, function (err, cognitoUser) {
         if (err) {
-            winston.debug("Error getting user from Cognito: ", err);
+            logger.debug("Error getting user from Cognito: ", err);
             callback(err);
         }
         else {
@@ -125,7 +130,7 @@ function getUserFromCognitoUser(cognitoUser, attributeList) {
         });
     }
     catch (error) {
-        winston.error('Error populating user from Cognito user: ', error);
+        logger.error('Error populating user from Cognito user: ', error);
         throw error;
     }
     return user;

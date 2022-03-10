@@ -444,7 +444,7 @@ Resources:
     Properties:
       Handle:
         Ref: WaitHandle
-      Timeout: '3600'
+      Timeout: '7200'
       Count: '7'
   UserServiceCleanup:
     Type: AWS::CloudFormation::Stack

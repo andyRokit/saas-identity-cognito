@@ -30,7 +30,7 @@ Resources:
       Description: Custom Authorizer
       Handler: index.handler
       Role: !Ref LambdaExecutionRole
-      Runtime: nodejs4.3
+      Runtime: nodejs14.x
   IdentityApi:
     Type: AWS::ApiGateway::RestApi
     DependsOn: LambdaAuthorizer
@@ -45,12 +45,12 @@ Resources:
           title: SaaS Identity Cognito API
         basePath: /prod
         schemes:
-        - https
+          - https
         paths:
           /auth:
             post:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -67,18 +67,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /auth
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /auth
                 passthroughBehavior: when_no_match
                 httpMethod: POST
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -106,7 +106,7 @@ Resources:
           /auth/health:
             get:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -123,18 +123,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /auth/health
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /auth/health
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -162,12 +162,12 @@ Resources:
           /order:
             post:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -177,7 +177,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -186,21 +186,21 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /order
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /order
                 passthroughBehavior: when_no_match
                 httpMethod: POST
                 type: http_proxy
             put:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -210,7 +210,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -219,18 +219,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /order
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /order
                 passthroughBehavior: when_no_match
                 httpMethod: PUT
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -258,7 +258,7 @@ Resources:
           /order/health:
             get:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -275,18 +275,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /order/health
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /order/health
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -314,16 +314,16 @@ Resources:
           /order/{id}:
             get:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
-              - name: id
-                in: path
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
+                - name: id
+                  in: path
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -333,7 +333,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -344,25 +344,25 @@ Resources:
                   integration.request.path.id: method.request.path.id
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /order/{id}
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /order/{id}
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             delete:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
-              - name: id
-                in: path
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
+                - name: id
+                  in: path
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -372,7 +372,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -383,18 +383,18 @@ Resources:
                   integration.request.path.id: method.request.path.id
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /order/{id}
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /order/{id}
                 passthroughBehavior: when_no_match
                 httpMethod: DELETE
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -422,12 +422,12 @@ Resources:
           /orders:
             get:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -437,7 +437,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -446,18 +446,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /orders
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /orders
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -485,12 +485,12 @@ Resources:
           /product:
             post:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -500,7 +500,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -509,21 +509,21 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /product
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /product
                 passthroughBehavior: when_no_match
                 httpMethod: POST
                 type: http_proxy
             put:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -533,7 +533,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -542,18 +542,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /product
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /product
                 passthroughBehavior: when_no_match
                 httpMethod: PUT
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -581,7 +581,7 @@ Resources:
           /product/health:
             get:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -598,18 +598,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /product/health
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /product/health
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -637,16 +637,16 @@ Resources:
           /product/{id}:
             get:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
-              - name: id
-                in: path
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
+                - name: id
+                  in: path
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -656,7 +656,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -667,25 +667,25 @@ Resources:
                   integration.request.path.id: method.request.path.id
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /product/{id}
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /product/{id}
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             delete:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
-              - name: id
-                in: path
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
+                - name: id
+                  in: path
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -695,7 +695,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -706,18 +706,18 @@ Resources:
                   integration.request.path.id: method.request.path.id
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /product/{id}
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /product/{id}
                 passthroughBehavior: when_no_match
                 httpMethod: DELETE
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -745,12 +745,12 @@ Resources:
           /products:
             get:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -760,7 +760,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -769,18 +769,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /products
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /products
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -808,7 +808,7 @@ Resources:
           /reg:
             post:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -825,18 +825,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /reg
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /reg
                 passthroughBehavior: when_no_match
                 httpMethod: POST
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -864,7 +864,7 @@ Resources:
           /reg/health:
             get:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -881,18 +881,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /reg/health
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /reg/health
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -920,23 +920,23 @@ Resources:
           /reg/{id}:
             delete:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
-              - name: id
-                in: path
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
+                - name: id
+                  in: path
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
                   schema:
                     $ref: '#/definitions/Empty'
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -945,18 +945,18 @@ Resources:
                   integration.request.path.id: method.request.path.id
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /reg/{id}
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /reg/{id}
                 passthroughBehavior: when_no_match
                 httpMethod: DELETE
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -984,7 +984,7 @@ Resources:
           /sys/admin:
             post:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1001,16 +1001,16 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /sys/admin
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /sys/admin
                 passthroughBehavior: when_no_match
                 httpMethod: POST
                 type: http_proxy
             delete:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1027,18 +1027,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /sys/admin
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /sys/admin
                 passthroughBehavior: when_no_match
                 httpMethod: DELETE
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1066,7 +1066,7 @@ Resources:
           /sys/health:
             get:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1083,18 +1083,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /sys/health
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /sys/health
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1122,12 +1122,12 @@ Resources:
           /tenant:
             post:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: false
-                type: string
+                - name: Authorization
+                  in: header
+                  required: false
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -1144,21 +1144,21 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /tenant
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /tenant
                 passthroughBehavior: when_no_match
                 httpMethod: POST
                 type: http_proxy
             put:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -1168,7 +1168,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -1177,18 +1177,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /tenant
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /tenant
                 passthroughBehavior: when_no_match
                 httpMethod: PUT
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1216,7 +1216,7 @@ Resources:
           /tenant/health:
             get:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1233,18 +1233,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /tenant/health
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /tenant/health
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1272,16 +1272,16 @@ Resources:
           /tenant/{id}:
             get:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
-              - name: id
-                in: path
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
+                - name: id
+                  in: path
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -1291,7 +1291,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -1302,25 +1302,25 @@ Resources:
                   integration.request.path.id: method.request.path.id
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /tenant/{id}
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /tenant/{id}
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             delete:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
-              - name: id
-                in: path
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
+                - name: id
+                  in: path
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -1330,7 +1330,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -1341,18 +1341,18 @@ Resources:
                   integration.request.path.id: method.request.path.id
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /tenant/{id}
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /tenant/{id}
                 passthroughBehavior: when_no_match
                 httpMethod: DELETE
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1380,12 +1380,12 @@ Resources:
           /tenants:
             get:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -1395,7 +1395,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -1404,18 +1404,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /tenants
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /tenants
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1443,12 +1443,12 @@ Resources:
           /user:
             post:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -1458,7 +1458,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -1467,21 +1467,21 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user
                 passthroughBehavior: when_no_match
                 httpMethod: POST
                 type: http_proxy
             put:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -1491,7 +1491,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -1500,18 +1500,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user
                 passthroughBehavior: when_no_match
                 httpMethod: PUT
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1539,7 +1539,7 @@ Resources:
           /user/admin:
             post:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1556,18 +1556,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user/admin
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user/admin
                 passthroughBehavior: when_no_match
                 httpMethod: POST
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1595,12 +1595,12 @@ Resources:
           /user/disable:
             put:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -1610,7 +1610,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -1619,18 +1619,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user/disable
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user/disable
                 passthroughBehavior: when_no_match
                 httpMethod: PUT
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1658,12 +1658,12 @@ Resources:
           /user/enable:
             put:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: false
-                type: string
+                - name: Authorization
+                  in: header
+                  required: false
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -1673,7 +1673,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -1682,18 +1682,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user/enable
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user/enable
                 passthroughBehavior: when_no_match
                 httpMethod: PUT
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1721,7 +1721,7 @@ Resources:
           /user/health:
             get:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1738,18 +1738,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user/health
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user/health
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1777,9 +1777,9 @@ Resources:
           /user/pool:
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1807,12 +1807,12 @@ Resources:
           /user/pool/{id}:
             get:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: id
-                in: path
-                required: true
-                type: string
+                - name: id
+                  in: path
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -1831,18 +1831,18 @@ Resources:
                   integration.request.path.id: method.request.path.id
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user/pool/{id}
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user/pool/{id}
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1870,7 +1870,7 @@ Resources:
           /user/reg:
             post:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1887,18 +1887,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user/reg
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user/reg
                 passthroughBehavior: when_no_match
                 httpMethod: POST
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1926,7 +1926,7 @@ Resources:
           /user/tenants:
             delete:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1943,18 +1943,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user/tenants
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user/tenants
                 passthroughBehavior: when_no_match
                 httpMethod: DELETE
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1982,7 +1982,7 @@ Resources:
           /user/tables:
             delete:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -1999,18 +1999,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user/tables
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user/tables
                 passthroughBehavior: when_no_match
                 httpMethod: DELETE
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -2038,7 +2038,7 @@ Resources:
           /user/system:
             post:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -2055,16 +2055,16 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user/system
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user/system
                 passthroughBehavior: when_no_match
                 httpMethod: POST
                 type: http_proxy
             delete:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -2081,18 +2081,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user/system
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user/system
                 passthroughBehavior: when_no_match
                 httpMethod: DELETE
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -2120,7 +2120,7 @@ Resources:
           /tenants/system:
             get:
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -2137,18 +2137,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /tenants/system
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /tenants/system
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -2176,16 +2176,16 @@ Resources:
           /user/{id}:
             get:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
-              - name: id
-                in: path
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
+                - name: id
+                  in: path
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -2195,7 +2195,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -2206,25 +2206,25 @@ Resources:
                   integration.request.path.id: method.request.path.id
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user/{id}
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user/{id}
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             delete:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
-              - name: id
-                in: path
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
+                - name: id
+                  in: path
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -2234,7 +2234,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -2245,18 +2245,18 @@ Resources:
                   integration.request.path.id: method.request.path.id
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /user/{id}
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /user/{id}
                 passthroughBehavior: when_no_match
                 httpMethod: DELETE
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -2284,12 +2284,12 @@ Resources:
           /users:
             get:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - name: Authorization
-                in: header
-                required: true
-                type: string
+                - name: Authorization
+                  in: header
+                  required: true
+                  type: string
               responses:
                 '200':
                   description: 200 response
@@ -2299,7 +2299,7 @@ Resources:
                     Access-Control-Allow-Origin:
                       type: string
               security:
-              - customAuthorizerRole: []
+                - customAuthorizerRole: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
@@ -2308,18 +2308,18 @@ Resources:
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                 uri:
                   Fn::Join:
-                  - ''
-                  - - http://
-                    - Ref: ServiceUrl
-                    - /users
+                    - ''
+                    - - http://
+                      - Ref: ServiceUrl
+                      - /users
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http_proxy
             options:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -2360,14 +2360,14 @@ Resources:
               authorizerResultTtlInSeconds: 300
               authorizerUri:
                 Fn::Join:
-                - ''
-                - - 'arn:aws:apigateway:'
-                  - Ref: AWS::Region
-                  - :lambda:path/2015-03-31/functions/
-                  - Fn::GetAtt:
-                    - LambdaAuthorizer
-                    - Arn
-                  - /invocations
+                  - ''
+                  - - 'arn:aws:apigateway:'
+                    - Ref: AWS::Region
+                    - :lambda:path/2015-03-31/functions/
+                    - Fn::GetAtt:
+                        - LambdaAuthorizer
+                        - Arn
+                    - /invocations
               type: token
         definitions:
           Empty:
@@ -2379,27 +2379,27 @@ Resources:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - apigateway.amazonaws.com
-          Action:
-          - sts:AssumeRole
-      Policies:
-      - PolicyName: ApiGatewayLogsPolicy
-        PolicyDocument:
-          Version: 2012-10-17
-          Statement:
           - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
             Action:
-            - logs:CreateLogGroup
-            - logs:CreateLogStream
-            - logs:DescribeLogGroups
-            - logs:DescribeLogStreams
-            - logs:PutLogEvents
-            - logs:GetLogEvents
-            - logs:FilterLogEvents
-            Resource: '*'
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: ApiGatewayLogsPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                  - logs:PutLogEvents
+                  - logs:GetLogEvents
+                  - logs:FilterLogEvents
+                Resource: '*'
   IdentityApiStage:
     Type: AWS::ApiGateway::Stage
     Properties:

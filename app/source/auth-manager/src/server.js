@@ -15,7 +15,14 @@ var configuration = configModule.configure(process.env.NODE_ENV);
 
 //Configure Logging
 const winston = require('winston');
-winston.level = configuration.loglevel;
+
+// Init the winston logger
+const logger = winston.createLogger({
+    level: configuration.loglevel,
+    transports: [
+        new winston.transports.Console()
+    ]
+});
 
 //Include Custom Modules
 const tokenManager = require('../shared-modules/token-manager/token-manager.js');
@@ -113,7 +120,7 @@ app.post('/auth', function (req, res) {
             });
         }
         else {
-            winston.error("Error Authenticating User: ", error);
+            logger.error("Error Authenticating User: ", error);
             res.status(404);
             res.json(error);
         }

@@ -10,7 +10,15 @@ const configModule = require('../shared-modules/config-helper/config.js');
 var configuration = configModule.configure(process.env.NODE_ENV);
 //Configure Logging
 const winston = require('winston');
-winston.level = configuration.loglevel;
+
+// Init the winston logger
+const logger = winston.createLogger({
+    level: configuration.loglevel,
+    transports: [
+        new winston.transports.Console()
+    ]
+});
+
 //Include Custom Modules
 const tokenManager = require('../shared-modules/token-manager/token-manager.js');
 const DynamoDBHelper = require('../shared-modules/dynamodb-helper/dynamodb-helper.js');
@@ -52,7 +60,7 @@ app.get('/tenant/health', function(req, res) {
 
 // Create REST entry points
 app.get('/tenant/:id', function (req, res) {
-    winston.debug('Fetching tenant: ' + req.params.id);
+    logger.debug('Fetching tenant: ' + req.params.id);
 
     // init params structure with request params
     var tenantIdParam = {
@@ -65,11 +73,11 @@ app.get('/tenant/:id', function (req, res) {
 
         dynamoHelper.getItem(tenantIdParam, credentials, function (err, tenant) {
             if (err) {
-                winston.error('Error getting tenant: ' + err.message);
+                logger.error('Error getting tenant: ' + err.message);
                 res.status(400).send('{"Error" : "Error getting tenant"}');
             }
             else {
-                winston.debug('Tenant ' + req.params.id + ' retrieved');
+                logger.debug('Tenant ' + req.params.id + ' retrieved');
                 res.status(200).send(tenant);
             }
         });
@@ -77,7 +85,7 @@ app.get('/tenant/:id', function (req, res) {
 });
 
 app.get('/tenants', function(req, res) {
-    winston.debug('Fetching all tenants');
+    logger.debug('Fetching all tenants');
 
     tokenManager.getCredentialsFromToken(req, function(credentials) {
         var scanParams = {
@@ -89,11 +97,11 @@ app.get('/tenants', function(req, res) {
 
         dynamoHelper.scan(scanParams, credentials, function (error, tenants) {
             if (error) {
-                winston.error('Error retrieving tenants: ' + error.message);
+                logger.error('Error retrieving tenants: ' + error.message);
                 res.status(400).send('{"Error" : "Error retrieving tenants"}');
             }
             else {
-                winston.debug('Tenants successfully retrieved');
+                logger.debug('Tenants successfully retrieved');
                 res.status(200).send(tenants);
             }
 
@@ -102,7 +110,7 @@ app.get('/tenants', function(req, res) {
 });
 
 app.get('/tenants/system', function(req, res) {
-    winston.debug('Fetching all tenants required to clean up infrastructure');
+    logger.debug('Fetching all tenants required to clean up infrastructure');
 //Note: Reference Architecture not leveraging Client Certificate to secure system only endpoints. Please integrate the following endpoint with a Client Certificate.
     var credentials = {};
     tokenManager.getSystemCredentials(function (systemCredentials) {
@@ -116,11 +124,11 @@ app.get('/tenants/system', function(req, res) {
 
         dynamoHelper.scan(scanParams, credentials, function (error, tenants) {
             if (error) {
-                winston.error('Error retrieving tenants: ' + error.message);
+                logger.error('Error retrieving tenants: ' + error.message);
                 res.status(400).send('{"Error" : "Error retrieving tenants"}');
             }
             else {
-                winston.debug('Tenants successfully retrieved');
+                logger.debug('Tenants successfully retrieved');
                 res.status(200).send(tenants);
             }
 
@@ -133,18 +141,18 @@ app.post('/tenant', function(req, res) {
     tokenManager.getSystemCredentials(function (systemCredentials) {
         credentials = systemCredentials;
         var tenant = req.body;
-        winston.debug('Creating Tenant: ' + tenant.id);
+        logger.debug('Creating Tenant: ' + tenant.id);
 
         // construct the helper object
         var dynamoHelper = new DynamoDBHelper(tenantSchema, credentials, configuration);
 
         dynamoHelper.putItem(tenant, credentials, function (err, tenant) {
             if (err) {
-                winston.error('Error creating new tenant: ' + err.message);
+                logger.error('Error creating new tenant: ' + err.message);
                 res.status(400).send('{"Error" : "Error creating tenant"}');
             }
             else {
-                winston.debug('Tenant ' + tenant.id + ' created');
+                logger.debug('Tenant ' + tenant.id + ' created');
                 res.status(200).send({status: 'success'});
             }
         });
@@ -155,15 +163,15 @@ app.post('/tenant', function(req, res) {
 //add code to add disable flag to tenant
 app.post('/disable', function(req, res) {
     var tenant = new Tenant(req.body);
-    winston.debug('Disable Tenant: ' + tenant.id);
+    logger.debug('Disable Tenant: ' + tenant.id);
     tenant.save(function(err) {
         if (err) {
-            winston.error('Error creating new tenant: ' + err.message);
+            logger.error('Error creating new tenant: ' + err.message);
             res.status(400);
             res.json(err);
         }
         else {
-            winston.error('tenant' + tenant.id + 'created');
+            logger.error('tenant' + tenant.id + 'created');
             res.json(tenant);
         }
 
@@ -172,7 +180,7 @@ app.post('/disable', function(req, res) {
 */
 
 app.put('/tenant', function(req, res) {
-    winston.debug('Updating tenant: ' + req.body.id);
+    logger.debug('Updating tenant: ' + req.body.id);
     tokenManager.getCredentialsFromToken(req, function(credentials) {
         // init the params from the request data
         var keyParams = {
@@ -206,11 +214,11 @@ app.put('/tenant', function(req, res) {
 
         dynamoHelper.updateItem(tenantUpdateParams, credentials, function (err, tenant) {
             if (err) {
-                winston.error('Error updating tenant: ' + err.message);
+                logger.error('Error updating tenant: ' + err.message);
                 res.status(400).send('{"Error" : "Error updating tenant"}');
             }
             else {
-                winston.debug('Tenant ' + req.body.title + ' updated');
+                logger.debug('Tenant ' + req.body.title + ' updated');
                 res.status(200).send(tenant);
             }
         });
@@ -218,7 +226,7 @@ app.put('/tenant', function(req, res) {
 });
 
 app.delete('/tenant/:id', function(req, res) {
-    winston.debug('Deleting Tenant: ' + req.params.id);
+    logger.debug('Deleting Tenant: ' + req.params.id);
 
     tokenManager.getCredentialsFromToken(req, function(credentials) {
         // init parameter structure
@@ -234,11 +242,11 @@ app.delete('/tenant/:id', function(req, res) {
 
         dynamoHelper.deleteItem(deleteTenantParams, credentials, function (err, product) {
             if (err) {
-                winston.error('Error deleting tenant: ' + err.message);
+                logger.error('Error deleting tenant: ' + err.message);
                 res.status(400).send('{"Error" : "Error deleting tenant"}');
             }
             else {
-                winston.debug('Tenant ' + req.params.id + ' deleted');
+                logger.debug('Tenant ' + req.params.id + ' deleted');
                 res.status(200).send({status: 'success'});
             }
         });

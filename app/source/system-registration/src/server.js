@@ -4,18 +4,36 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const uuidV4 = require('uuid/v4');
-const request = require('request');
+
+const AxiosLogger = require('axios-logger');
+const BadRequestError = require('bad-request-error');
+
+// Init axios
+const axios = require('axios').create();
+axios.interceptors.request.use(AxiosLogger.requestLogger);
+axios.interceptors.response.use(AxiosLogger.responseLogger);
 
 //Configure Environment
 const configModule = require('../shared-modules/config-helper/config.js');
-var configuration = configModule.configure(process.env.NODE_ENV);
+const configuration = configModule.configure(process.env.NODE_ENV);
 
 //Configure Logging
 const winston = require('winston');
-winston.level = configuration.loglevel;
 
-var tenantURL   = configuration.url.tenant;
-var userURL   = configuration.url.user;
+// Init the winston logger
+const logger = winston.createLogger({
+    level: configuration.loglevel,
+    format: winston.format.simple(),
+    transports: [
+        new winston.transports.Console()
+    ]
+});
+
+const tenantURL = configuration.url.tenant;
+const userURL = configuration.url.user;
+const registerTenantUserURL = userURL + '/system';
+const deleteInfraUrl = configuration.url.user + '/tenants';
+const deleteTableUrl = configuration.url.user + '/tables';
 
 
 // Instantiate application
@@ -40,51 +58,22 @@ app.use(function (req, res, next) {
 });
 
 
-
 /**
  * Register a new system admin user
  */
-app.post('/sys/admin', function (req, res) {
+app.post('/sys/admin', async (req, res, next) => {
     var tenant = req.body;
 
     // Generate the tenant id for the system user
     tenant.id = 'SYSADMIN' + uuidV4();
-    winston.debug('Creating system admin user, tenant id: ' + tenant.id);
+    logger.debug('Creating system admin user, tenant id: ' + tenant.id);
     tenant.id = tenant.id.split('-').join('');
 
-    // if the system admin user doesn't exist, create one
-    tenantExists(tenant, function(tenantExists) {
-        if (tenantExists) {
-            winston.error("Error registering new system admin user");
-            res.status(400).send("Error registering new system admin user");
-        }
-        else {
-            registerTenantAdmin(tenant)
-                .then(function (tenData) {
-
-                    //Adding Data to the Tenant Object that will be required to cleaning up all created resources for all tenants.
-                    tenant.UserPoolId = tenData.pool.UserPool.Id;
-                    tenant.IdentityPoolId = tenData.identityPool.IdentityPoolId;
-
-                    tenant.systemAdminRole = tenData.role.systemAdminRole;
-                    tenant.systemSupportRole = tenData.role.systemSupportRole;
-                    tenant.trustRole = tenData.role.trustRole;
-
-                    tenant.systemAdminPolicy = tenData.policy.systemAdminPolicy;
-                    tenant.systemSupportPolicy = tenData.policy.systemSupportPolicy;
-
-                    saveTenantData(tenant)
-                })
-                .then(function () {
-                    winston.debug("System admin user registered: " + tenant.id);
-                    res.status(200).send("System admin user " + tenant.id + " registered");
-                })
-                .catch(function (error) {
-                    winston.error("Error registering new system admin user: " + error.message);
-                    res.status(400).send("Error registering system admin user: " + error.message);
-                });
-        }
-    });
+    await verifyUserDoesntExist(tenant)
+        .then(() => registerTenantAdmin(tenant))
+        .then(registeredTenant => saveTenantData(registeredTenant))
+        .then(() => res.status(200).send(`System admin user ${tenant.id} registered`))
+        .catch(err => next(err));
 });
 
 
@@ -96,20 +85,35 @@ app.delete('/sys/admin', function (req, res) {
 
     deleteInfra()
         .then(function () {
-            winston.debug("Delete Infra");
+            logger.debug("Delete Infra");
             //CloudFormation will remove the tables. This can be uncommented if required.
             //deleteTables()
         })
         .then(function () {
-            winston.debug("System Infrastructure & Tables removed");
+            logger.debug("System Infrastructure & Tables removed");
             res.status(200).send("System Infrastructure & Tables removed");
         })
         .catch(function (error) {
-            winston.error("Error removing system");
+            logger.error("Error removing system");
             res.status(400).send(" Error removing system");
         });
 
 });
+
+// Error handling
+app.use((err, req, res, next) => {
+    // send errmsg to user if it's a BadRequestError
+    if (res && err.name && err.name === 'BadRequestError') {
+        res.status(err.httpStatus).json({ error: err.message });
+        return;
+    }
+
+    // send http err if res object is provided
+    if (res) res.status(500).send('Server Error');
+
+    // if it's more low level, or if errorField isn't an error's propt
+    logger.error(err.stack);
+})
 
 
 /**
@@ -117,28 +121,28 @@ app.delete('/sys/admin', function (req, res) {
  * @param tenant The tenant data
  * @returns True if the tenant exists
  */
-function tenantExists(tenant, callback) {
-    // Create URL for user-manager request
-    var userExistsUrl = userURL + '/pool/' + tenant.userName;
+function verifyUserDoesntExist(tenant) {
+    logger.debug(`Checking tenant exists: ${tenant.userName}`);
 
-    // see if the user already exists
-    request({
-        url: userExistsUrl,
-        method: "GET",
-        json: true,
-        headers: {"content-type": "application/json"}
-    }, function (error, response, body) {
-        if (error)
-            callback(false);
-        else if ((response != null) && (response.statusCode == 400))
-            callback(false);
-        else {
-            if (body.userName === tenant.userName)
-                callback(true);
-            else
-                callback(false);
-        }
-    });
+    // Create URL for user-manager request
+    const url = userURL + '/pool/' + tenant.userName;
+
+    return axios
+        .get(url)
+        .then(res => {
+            if(res.data.userName === tenant.userName) {
+                throw new BadRequestError(`Admin user ${tenant.userName} already exists`);
+            }
+        }).catch(err => {
+            if (err.response?.data?.Error === "User not found") {
+                // Happy path!  This is actually the response we want.  Swallow err and return.
+                return;
+            } else if (err.response?.data) {
+                throw new Error(`Failed to check if tenant ${tenant.userName} exists. Status: ${err.response.status} Body: ${err.response.body}`)
+            } else {
+                throw new Error(`Failed to check if tenant ${tenant.userName} exists. Error: ${err.message}`)
+            }
+        });
 };
 
 /**
@@ -147,41 +151,39 @@ function tenantExists(tenant, callback) {
  * @returns {Promise} Results of tenant provisioning
  */
 function registerTenantAdmin(tenant) {
-    var promise = new Promise(function(resolve, reject) {
+    logger.debug("Registering tenant admin: " + tenant.userName);
 
-        // init the request with tenant data
-        var tenantAdminData = {
-            "tenant_id": tenant.id,
-            "companyName": tenant.companyName,
-            "accountName": tenant.accountName,
-            "ownerName": tenant.ownerName,
-            "tier": tenant.tier,
-            "email": tenant.email,
-            "userName": tenant.userName,
-            "role": tenant.role,
-            "firstName": tenant.firstName,
-            "lastName": tenant.lastName
-        };
+    return axios.post(registerTenantUserURL, {
+        "tenant_id": tenant.id,
+        "companyName": tenant.companyName,
+        "accountName": tenant.accountName,
+        "ownerName": tenant.ownerName,
+        "tier": tenant.tier,
+        "email": tenant.email,
+        "userName": tenant.userName,
+        "role": tenant.role,
+        "firstName": tenant.firstName,
+        "lastName": tenant.lastName
+    }).then(res => {
+        const pool = res.data.pool;
+        const identityPool = res.data.identityPool;
+        const role = res.data.role;
+        const policy = res.data.policy;
 
-        // REST API URL
-        var registerTenantUserURL = configuration.url.user + '/system';
+        //Adding Data to the Tenant Object that will be required to cleaning up all created resources for all tenants.
+        tenant.UserPoolId = pool.UserPool.Id;
+        tenant.IdentityPoolId = identityPool.IdentityPoolId;
 
-        // fire request
-        request({
-            url: registerTenantUserURL,
-            method: "POST",
-            json: true,
-            headers: {"content-type": "application/json"},
-            body: tenantAdminData
-        }, function (error, response, body) {
-            if (error || (response.statusCode != 200))
-                reject(error)
-            else
-                resolve(body)
-        });
+        tenant.systemAdminRole = role.systemAdminRole;
+        tenant.systemSupportRole = role.systemSupportRole;
+        tenant.trustRole = role.trustRole;
+
+        tenant.systemAdminPolicy = policy.systemAdminPolicy;
+        tenant.systemSupportPolicy = policy.systemSupportPolicy;
+        return tenant;
+    }).catch(err => {
+        throw new Error(`Error registering new system admin user: ${err.message}`);
     });
-
-    return promise;
 }
 
 /**
@@ -190,9 +192,10 @@ function registerTenantAdmin(tenant) {
  * @returns {Promise} The created tenant
  */
 function saveTenantData(tenant) {
-    var promise = new Promise(function(resolve, reject) {
-        // init the tenant sace request
-        var tenantRequestData = {
+    logger.info('saveTenantData saving ' + tenant.id);
+
+    return axios.post(tenantURL,
+        {
             "id": tenant.id,
             "companyName": tenant.companyName,
             "accountName": tenant.accountName,
@@ -208,24 +211,10 @@ function saveTenantData(tenant) {
             "systemAdminPolicy": tenant.systemAdminPolicy,
             "systemSupportPolicy": tenant.systemSupportPolicy,
             "userName": tenant.userName,
-        };
-
-        // fire request
-        request({
-            url: tenantURL,
-            method: "POST",
-            json: true,
-            headers: {"content-type": "application/json"},
-            body: tenantRequestData
-        }, function (error, response, body) {
-            if (error || (response.statusCode != 200))
-                reject(error);
-            else
-                resolve(body);
-        });
+        }
+    ).catch(err => {
+        throw new Error(`Failed to save tenant data.  Error: ${err.message}`);
     });
-
-    return promise;
 }
 
 /**
@@ -233,30 +222,14 @@ function saveTenantData(tenant) {
  * @returns {Promise} The created tenant
  */
 function deleteInfra() {
-    var promise = new Promise(function(resolve, reject) {
-
-        var deleteInfraUrl = configuration.url.user + '/tenants';
-
-        // fire request
-        request({
-            url: deleteInfraUrl,
-            method: "DELETE",
-            json: true,
-        }, function (error, response) {
-            if (error || (response.statusCode != 200))
-            {
-                reject(error);
-                winston.debug('Error Removing Infrastructure');
-            }
-            else
-            {
-                resolve(response.statusCode);
-                winston.debug('Removed Infrastructure');
-            }
+    return axios
+        .delete(deleteInfraUrl)
+        .then(res => {
+            logger.info('Removed Infrastructure');
+        })
+        .catch(err => {
+            logger.info(`Error Removing Infrastructure: ${err.message}`);
         });
-    });
-
-    return promise;
 }
 
 /**
@@ -264,35 +237,19 @@ function deleteInfra() {
  * @returns {Promise} The created tenant
  */
 function deleteTables() {
-    var promise = new Promise(function(resolve, reject) {
-
-        var deleteTableUrl = configuration.url.user + '/tables';
-
-        // fire request
-        request({
-            url: deleteTableUrl,
-            method: "DELETE",
-            json: true,
-        }, function (error, response) {
-            if (error || (response.statusCode != 200))
-            {
-                reject(response.statusCode);
-                winston.debug('Error Removing Tables');
-            }
-            else
-            {
-                resolve(response.statusCode);
-                winston.debug('Removed Tables');
-            }
+    return axios
+        .delete(deleteTableUrl)
+        .then(res => {
+            logger.info('Removed Tables');
+        })
+        .catch(err => {
+            logger.info(`Error Removing Tables: ${err.message}`);
         });
-    });
-
-    return promise;
 }
 
 
-app.get('/sys/health', function(req, res) {
-    res.status(200).send({service: 'Tenant Registration', isAlive: true});
+app.get('/sys/health', function (req, res) {
+    res.status(200).send({ service: 'System Registration', isAlive: true });
 });
 
 

@@ -13,7 +13,14 @@ var configuration = configModule.configure(process.env.NODE_ENV);
 
 // Configure Logging
 const winston = require('winston');
-winston.level = configuration.loglevel;
+
+// Init the winston logger
+const logger = winston.createLogger({
+    level: configuration.loglevel,
+    transports: [
+        new winston.transports.Console()
+    ]
+});
 
 // Include Custom Modules
 const tokenManager = require('../shared-modules/token-manager/token-manager.js');
@@ -61,7 +68,7 @@ app.get('/product/health', function(req, res) {
 
 // Create REST entry points
 app.get('/product/:id', function(req, res) {
-    winston.debug('Fetching product: ' + req.params.id);
+    logger.debug('Fetching product: ' + req.params.id);
 
     tokenManager.getCredentialsFromToken(req, function(credentials) {
         // init params structure with request params
@@ -75,11 +82,11 @@ app.get('/product/:id', function(req, res) {
 
         dynamoHelper.getItem(params, credentials, function (err, product) {
             if (err) {
-                winston.error('Error getting product: ' + err.message);
+                logger.error('Error getting product: ' + err.message);
                 res.status(400).send('{"Error" : "Error getting product"}');
             }
             else {
-                winston.debug('Product ' + req.params.id + ' retrieved');
+                logger.debug('Product ' + req.params.id + ' retrieved');
                 res.status(200).send(product);
             }
         });
@@ -87,7 +94,7 @@ app.get('/product/:id', function(req, res) {
 });
 
 app.get('/products', function(req, res) {
-    winston.debug('Fetching Products for Tenant Id: ' + tenantId);
+    logger.debug('Fetching Products for Tenant Id: ' + tenantId);
     tokenManager.getCredentialsFromToken(req, function(credentials) {
         var searchParams = {
             TableName: productSchema.TableName,
@@ -102,11 +109,11 @@ app.get('/products', function(req, res) {
 
         dynamoHelper.query(searchParams, credentials, function (error, products) {
             if (error) {
-                winston.error('Error retrieving products: ' + error.message);
+                logger.error('Error retrieving products: ' + error.message);
                 res.status(400).send('{"Error" : "Error retrieving products"}');
             }
             else {
-                winston.debug('Products successfully retrieved');
+                logger.debug('Products successfully retrieved');
                 res.status(200).send(products);
             }
 
@@ -125,11 +132,11 @@ app.post('/product', function(req, res) {
 
         dynamoHelper.putItem(product, credentials, function (err, product) {
             if (err) {
-                winston.error('Error creating new product: ' + err.message);
+                logger.error('Error creating new product: ' + err.message);
                 res.status(400).send('{"Error" : "Error creating product"}');
             }
             else {
-                winston.debug('Product ' + req.body.title + ' created');
+                logger.debug('Product ' + req.body.title + ' created');
                 res.status(200).send({status: 'success'});
             }
         });
@@ -137,7 +144,7 @@ app.post('/product', function(req, res) {
 });
 
 app.put('/product', function(req, res) {
-    winston.debug('Updating product: ' + req.body.productId);
+    logger.debug('Updating product: ' + req.body.productId);
     tokenManager.getCredentialsFromToken(req, function(credentials) {
         // init the params from the request data
         var keyParams = {
@@ -145,7 +152,7 @@ app.put('/product', function(req, res) {
             productId: req.body.productId
         }
 
-        winston.debug('Updating product: ' + req.body.productId);
+        logger.debug('Updating product: ' + req.body.productId);
 
         var productUpdateParams = {
             TableName: productSchema.TableName,
@@ -178,11 +185,11 @@ app.put('/product', function(req, res) {
 
         dynamoHelper.updateItem(productUpdateParams, credentials, function (err, product) {
             if (err) {
-                winston.error('Error updating product: ' + err.message);
+                logger.error('Error updating product: ' + err.message);
                 res.status(400).send('{"Error" : "Error updating product"}');
             }
             else {
-                winston.debug('Product ' + req.body.title + ' updated');
+                logger.debug('Product ' + req.body.title + ' updated');
                 res.status(200).send(product);
             }
         });
@@ -190,7 +197,7 @@ app.put('/product', function(req, res) {
 });
 
 app.delete('/product/:id', function(req, res) {
-    winston.debug('Deleting product: ' + req.params.id);
+    logger.debug('Deleting product: ' + req.params.id);
 
     tokenManager.getCredentialsFromToken(req, function(credentials) {
         // init parameter structure
@@ -207,11 +214,11 @@ app.delete('/product/:id', function(req, res) {
 
         dynamoHelper.deleteItem(deleteProductParams, credentials, function (err, product) {
             if (err) {
-                winston.error('Error deleting product: ' + err.message);
+                logger.error('Error deleting product: ' + err.message);
                 res.status(400).send('{"Error" : "Error deleting product"}');
             }
             else {
-                winston.debug('Product ' + req.params.id + ' deleted');
+                logger.debug('Product ' + req.params.id + ' deleted');
                 res.status(200).send({status: 'success'});
             }
         });

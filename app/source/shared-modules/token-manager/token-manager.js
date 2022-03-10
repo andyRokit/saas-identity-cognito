@@ -12,7 +12,14 @@ var configuration = configModule.configure(process.env.NODE_ENV);
 
 //Configure Logging
 const winston = require('winston');
-winston.level = configuration.loglevel;
+
+// Init the winston logger
+const logger = winston.createLogger({
+    level: configuration.loglevel,
+    transports: [
+        new winston.transports.Console()
+    ]
+});
 
 // TODO: replace temporary cache with real cache
 var tokenCache = {};
@@ -151,7 +158,7 @@ module.exports.getCredentialsFromToken = function(req, updateCredentials) {
                 }
             ], function(error, results) {
                 if (error) {
-                    winston.error('Error fetching credentials for user')
+                    logger.error('Error fetching credentials for user')
                     updateCredentials(null);
                 }
                 else {
@@ -161,7 +168,7 @@ module.exports.getCredentialsFromToken = function(req, updateCredentials) {
             });
         }
         else if (tokenValue in tokenCache) {
-            winston.debug('Getting credentials from cache');
+            logger.debug('Getting credentials from cache');
             updateCredentials(tokenCache[tokenValue]);
         }
     }
@@ -327,12 +334,12 @@ function authenticateUserInPool(userPool, idToken, callback) {
                     callback(null, {"claim": returnedCredentials.Credentials});
                 }
                 else {
-                    winston.error('ret');
+                    logger.error('ret');
                 }
             })
         }
         else {
-            winston.error('ret');
+            logger.error('ret');
         }
     })
 }
@@ -355,7 +362,7 @@ function getCredentialsForIdentity(event, callback) {
     };
     cognitoidentity.getCredentialsForIdentity(params, function (err, data) {
         if (err) {
-            winston.debug(err, err.stack);
+            logger.debug(err, err.stack);
             callback(err);
         }
         else {
@@ -382,7 +389,7 @@ function getId (event, callback) {
     };
     cognitoidentity.getId(params, function (err, data) {
         if (err) {
-            winston.debug(err, err.stack);
+            logger.debug(err, err.stack);
             callback(err);
         }
         else {
@@ -432,7 +439,7 @@ module.exports.getSystemCredentials = function(callback) {
         sysConfig.getCredentials(function(err) {
             if (err) {
                 callback(err.stack);
-                winston.debug('Unable to Obtain Credentials');
+                logger.debug('Unable to Obtain Credentials');
             } // credentials not loaded
             else{
                 var tempCreds = sysConfig.credentials;

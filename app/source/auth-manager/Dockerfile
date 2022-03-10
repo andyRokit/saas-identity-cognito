@@ -1,5 +1,5 @@
 #Base Image is Amazon Linux
-FROM amazonlinux:latest
+FROM public.ecr.aws/amazonlinux/amazonlinux:latest
 # Replace shell with bash so we can source files
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 #Update
@@ -9,7 +9,7 @@ RUN     yum install git -y
 RUN		yum groupinstall "Development Tools" -y
 # nvm environment variables
 ENV NVM_DIR /usr/local/nvm
-ENV NODE_VERSION 7.1.0
+ENV NODE_VERSION 16.14.0
 RUN curl --retry 5 --silent -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.2/install.sh | bash
 # install node and npm
 RUN source $NVM_DIR/nvm.sh \

@@ -21,7 +21,7 @@ Resources:
     Properties:
       Description: Removes CloudFormation Stack
       Handler: index.handler
-      Runtime: python2.7
+      Runtime: python3.9
       Role: !Ref ServiceToken
       Timeout: 240
       Code:
@@ -58,7 +58,7 @@ Resources:
                     StackName=stack
                 )
               except Exception as error:
-                print error
+                print(error)
                 print('error deleting stack')
                 response_status = 'FAILED'
               deleting = True
@@ -68,15 +68,15 @@ Resources:
                     StackName=stack
                   )
                   print('Describing Stack')
-                  print response
+                  print(response)
                 except botocore.exceptions.ClientError as error:
                   if error.response['Error']['Message'] == 'Stack with id ' + stack + ' does not exist':
                     # stack is gone so we can bail
-                    print "Stack not in the list. Proceeding..."
+                    print("Stack not in the list. Proceeding...")
                     break
                 except Exception as error:
                   # some other error occurred and we should fail completely
-                  print error
+                  print(error)
                   print('error deleting stack 2')
                   response_status = 'FAILED'
                   break
@@ -88,7 +88,7 @@ Resources:
                 # then we know something went wrong
                 if numStacks == 1 and response['Stacks'][0]['StackStatus']!='DELETE_IN_PROGRESS' and response['Stacks'][0]['StackStatus']!='DELETE_COMPLETE':
                   # it's broken
-                  print "Stack still exists and isn't in delete in-progress/complete.  Something went wrong..."
+                  print("Stack still exists and isn't in delete in-progress/complete.  Something went wrong...")
                   response_status = 'FAILED'
                   break
                 else:
@@ -97,7 +97,7 @@ Resources:
 
 
           def handler(event, context):
-            print "Received event: %s" % json.dumps(event)
+            print("Received event: {}".format( json.dumps(event)))
 
             status = cfnresponse.FAILED
             new_physical_id = None
@@ -112,7 +112,7 @@ Resources:
                 'Delete': delete
               }.get(event['RequestType'], lambda x, y: (cfnresponse.FAILED, None))(properties, physical_id)
             except Exception as e:
-              print "Exception: %s" % e
+              print("Exception: %s" % e)
               status = cfnresponse.FAILED
             finally:
               cfnresponse.send(event, context, status, {}, new_physical_id)

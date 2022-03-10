@@ -12,7 +12,14 @@ var configuration = configModule.configure(process.env.NODE_ENV);
 
 //Configure Logging
 const winston = require('winston');
-winston.level = configuration.loglevel;
+
+// Init the winston logger
+const logger = winston.createLogger({
+    level: configuration.loglevel,
+    transports: [
+        new winston.transports.Console()
+    ]
+});
 
 var tenantURL   = configuration.url.tenant;
 var userURL   = configuration.url.user;
@@ -46,13 +53,13 @@ app.post('/reg', function (req, res) {
 
     // Generate the tenant id
     tenant.id = 'TENANT' + uuidV4();
-    winston.debug('Creating Tenant ID: ' + tenant.id);
+    logger.debug('Creating Tenant ID: ' + tenant.id);
     tenant.id = tenant.id.split('-').join('');
 
     // if the tenant doesn't exist, create one
     tenantExists(tenant, function(tenantExists) {
         if (tenantExists) {
-            winston.error("Error registering new tenant");
+            logger.error("Error registering new tenant");
             res.status(400).send("Error registering new tenant");
         }
         else {
@@ -72,11 +79,11 @@ app.post('/reg', function (req, res) {
                     saveTenantData(tenant)
                 })
                 .then(function () {
-                    winston.debug("Tenant registered: " + tenant.id);
+                    logger.debug("Tenant registered: " + tenant.id);
                     res.status(200).send("Tenant " + tenant.id + " registered");
                 })
                 .catch(function (error) {
-                    winston.error("Error registering new tenant: " + error.message);
+                    logger.error("Error registering new tenant: " + error.message);
                     res.status(400).send("Error registering tenant: " + error.message);
                 });
         }

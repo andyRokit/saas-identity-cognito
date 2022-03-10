@@ -10,7 +10,13 @@ const configModule = require('../shared-modules/config-helper/config.js');
 var configuration = configModule.configure(process.env.NODE_ENV);
 //Configure Logging
 const winston = require('winston');
-winston.level = configuration.loglevel;
+// Init the winston logger
+const logger = winston.createLogger({
+    level: configuration.loglevel,
+    transports: [
+        new winston.transports.Console()
+    ]
+});
 //Include Custom Modules
 const tokenManager = require('../shared-modules/token-manager/token-manager.js');
 const DynamoDBHelper = require('../shared-modules/dynamodb-helper/dynamodb-helper.js');
@@ -55,7 +61,7 @@ app.get('/order/health', function(req, res) {
 
 // Create REST entry points
 app.get('/order/:id', function(req, res) {
-    winston.info('Fetching order: ' + req.params.id);
+    logger.info('Fetching order: ' + req.params.id);
 
     tokenManager.getCredentialsFromToken(req, function(credentials) {
         // init params structure with request params
@@ -69,11 +75,11 @@ app.get('/order/:id', function(req, res) {
 
         dynamoHelper.getItem(params, credentials, function (err, order) {
             if (err) {
-                winston.error('Error getting order: ' + err.message);
+                logger.error('Error getting order: ' + err.message);
                 res.status(400).send('{"Error" : "Error getting order"}');
             }
             else {
-                winston.debug('Order ' + req.params.id + ' retrieved');
+                logger.debug('Order ' + req.params.id + ' retrieved');
                 res.status(200).send(order);
             }
         });
@@ -81,7 +87,7 @@ app.get('/order/:id', function(req, res) {
 });
 
 app.get('/orders', function(req, res) {
-    winston.debug('Fetching Orders for Tenant Id: ' + tenantId);
+    logger.debug('Fetching Orders for Tenant Id: ' + tenantId);
     tokenManager.getCredentialsFromToken(req, function(credentials) {
         var searchParams = {
             TableName: orderSchema.TableName,
@@ -96,11 +102,11 @@ app.get('/orders', function(req, res) {
 
         dynamoHelper.query(searchParams, credentials, function (error, orders) {
             if (error) {
-                winston.error('Error retrieving orders: ' + error.message);
+                logger.error('Error retrieving orders: ' + error.message);
                 res.status(400).send('{"Error" : "Error retrieving orders"}');
             }
             else {
-                winston.debug('Orders successfully retrieved');
+                logger.debug('Orders successfully retrieved');
                 res.status(200).send(orders);
             }
 
@@ -119,11 +125,11 @@ app.post('/order', function(req, res) {
 
         dynamoHelper.putItem(order, credentials, function (err, order) {
             if (err) {
-                winston.error('Error creating new order: ' + err.message);
+                logger.error('Error creating new order: ' + err.message);
                 res.status(400).send('{"Error" : "Error creating order"}');
             }
             else {
-                winston.debug('Order ' + req.body.title + ' created');
+                logger.debug('Order ' + req.body.title + ' created');
                 res.status(200).send({status: 'success'});
             }
         });
@@ -138,7 +144,7 @@ app.put('/order', function(req, res) {
             orderId: req.body.orderId
         }
 
-        winston.debug('Updating Order Id: ' + req.body.orderId);
+        logger.debug('Updating Order Id: ' + req.body.orderId);
 
         var orderUpdateParams = {
             TableName: orderSchema.TableName,
@@ -168,11 +174,11 @@ app.put('/order', function(req, res) {
 
         dynamoHelper.updateItem(orderUpdateParams, credentials, function (err, order) {
             if (err) {
-                winston.error('Error updating order: ' + err.message);
+                logger.error('Error updating order: ' + err.message);
                 res.status(400).send('{"Error" : "Error updating order"}');
             }
             else {
-                winston.debug('Order ' + req.body.title + ' updated');
+                logger.debug('Order ' + req.body.title + ' updated');
                 res.status(200).send(order);
             }
         });
@@ -180,7 +186,7 @@ app.put('/order', function(req, res) {
 });
 
 app.delete('/order/:id', function(req, res) {
-    winston.debug('Deleting Order: ' + req.params.id);
+    logger.debug('Deleting Order: ' + req.params.id);
 
     tokenManager.getCredentialsFromToken(req, function(credentials) {
         // init parameter structure
@@ -197,11 +203,11 @@ app.delete('/order/:id', function(req, res) {
 
         dynamoHelper.deleteItem(deleteOrderParams, credentials, function (err, order) {
             if (err) {
-                winston.error('Error deleting order: ' + err.message);
+                logger.error('Error deleting order: ' + err.message);
                 res.status(400).send('{"Error" : "Error deleting order"}');
             }
             else {
-                winston.debug('Order ' + req.params.id + ' deleted');
+                logger.debug('Order ' + req.params.id + ' deleted');
                 res.status(200).send({status: 'success'});
             }
         });
