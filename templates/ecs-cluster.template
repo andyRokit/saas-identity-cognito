@@ -214,13 +214,12 @@ Resources:
             - cognito-idp:AdminDeleteUser
             - cognito-idp:DeleteUserPool
             - cognito-idp:AdminGetUser
+            - cognito-idp:TagResource
             Resource: '*'
           - Sid: APIGatewayKeysCertificates
             Effect: Allow
             Action:
             - apigateway:GET
-            - apigateway:HEAD
-            - apigateway:OPTIONS
             Resource:
             - arn:aws:apigateway:us-east-1::/clientcertificates/*
             - arn:aws:apigateway:us-east-1::/domainnames/*

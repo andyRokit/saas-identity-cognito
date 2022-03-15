@@ -1,17 +1,17 @@
 'use strict';
 
+class UserNotFoundError extends Error {
+    constructor(message) {
+        super(message)
+        this.name = this.constructor.name
+    }
+}
+
 // Declare dependencies
 const express = require('express');
 const bodyParser = require('body-parser');
-const AWS = require('aws-sdk');
 const winston = require('winston');
 const async = require('async');
-const AxiosLogger = require('axios-logger');
-
-// Init axios
-const axios = require('axios').create();
-axios.interceptors.request.use(AxiosLogger.requestLogger);
-axios.interceptors.response.use(AxiosLogger.responseLogger);
 
 // Configure Environment
 const configModule = require('../shared-modules/config-helper/config.js');
@@ -230,13 +230,15 @@ app.get('/user/pool/:id', function (req, res) {
     tokenManager.getSystemCredentials(function (credentials) {
         lookupUserPoolData(credentials, req.params.id, null, true, function (err, user) {
             if (err) {
-                res.status(400).send('{"Error" : "Error getting user"}');
+                if(err instanceof UserNotFoundError) {
+                    res.status(400).send('{"Error" : "User not found"}');
+                } else {
+                    logger.error(`Error getting user: ${err.message}`);
+                    res.status(500).send('Server Error');
+                }
             }
             else {
-                if (user.length == 0)
-                    res.status(400).send('{"Error": "User not found"}');
-                else
-                    res.status(200).send(user);
+                res.status(200).send(user);
             }
         });
     });
@@ -252,11 +254,13 @@ app.get('/user/:id', function (req, res) {
         var tenantId = tokenManager.getTenantId(req);
 
         lookupUserPoolData(credentials, req.params.id, tenantId, false, function(err, user) {
-            if (err)
+            if (err) {
+                logger.error(`Error getting user ${req.params.id}: ${err.message}`);
                 res.status(400).send('{"Error" : "Error getting user"}');
-            else {
+            } else {
                 cognitoUsers.getCognitoUser(credentials, user, function (err, user) {
                     if (err) {
+                        logger.error(`Error lookup user ${req.params.id}: ${err.message}`);
                         res.status(400);
                         res.json('Error lookup user user: ' + req.params.id);
                     }
@@ -316,6 +320,7 @@ app.post('/user', function (req, res) {
                     });
             }
             else {
+                logger.error(`Error finding user pool: ${err.message}`);
                 res.status(400).send('{"Error" : "User pool not found"}');
             }
         });
@@ -338,6 +343,7 @@ app.post('/user/system', function (req, res) {
             provisionAdminUserWithRoles(user, credentials, configuration.userRole.systemAdmin, configuration.userRole.systemUser,
                 function (err, result) {
                     if (err) {
+                        logger.error(`Error provisioning system admin user: ${err.message}`);
                         res.status(400).send("Error provisioning system admin user");
                     }
                     else {
@@ -367,6 +373,7 @@ app.post('/user/reg', function (req, res) {
             function(err, result) {
                 if (err)
                 {
+                    logger.error(`Error provisioning tenant admin user: ${err.message}`)
                     res.status(400).send("Error provisioning tenant admin user");
                 }
                 else
@@ -377,15 +384,18 @@ app.post('/user/reg', function (req, res) {
 
 });
 
+
 /**
  * Enable a user that is currently disabled
  */
 app.put('/user/enable', function (req, res) {
     updateUserEnabledStatus(req, true, function(err, result) {
-        if (err)
+        if (err) {
+        logger.error(`Error enabling user: ${err.message}`);
             res.status(400).send('Error enabling user');
-        else
+        } else {
             res.status(200).send(result);
+        }
     });
 });
 
@@ -395,10 +405,12 @@ app.put('/user/enable', function (req, res) {
  */
 app.put('/user/disable', function (req, res) {
     updateUserEnabledStatus(req, false, function(err, result) {
-        if (err)
+        if (err) {
+            logger.error(`Error disabling user: ${err.message}`);
             res.status(400).send('Error disabling user');
-        else
+        } else {
             res.status(200).send(result);
+        }
     });
 });
 
@@ -438,6 +450,7 @@ app.delete('/user/:id', function (req, res) {
             var userPool = userPoolData;
             // if the user pool found, proceed
             if (err) {
+                logger.error(`Error finding user: ${err.message}`);
                 res.status(400).send("User does not exist");
             }
             else {
@@ -755,7 +768,7 @@ function lookupUserPoolData(credentials, userId, tenantId, isSystemContext, call
             }
             else {
                 if (users.length == 0) {
-                    var err = new Error('No user found: ' + userId);
+                    var err = new UserNotFoundError();
                     callback(err);
                 }
                 else

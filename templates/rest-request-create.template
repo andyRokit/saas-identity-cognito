@@ -87,9 +87,10 @@ Resources:
           import json
           import boto3
           import cfnresponse
-          from botocore.vendored import requests
+          import urllib3
 
           s3 = boto3.resource('s3')
+          http = urllib3.PoolManager()
 
           def create(properties, physical_id):
             #Example Code for Completeing a GET or POST JSON HTTP Request Using a Lambda Custom CloudFormation Resource
@@ -108,31 +109,37 @@ Resources:
             print(url)
             if method == 'POST':
               print('POST')
-              payload = json.loads(body)
-              print(type(payload))
-              print(payload)
+              print(body)
 
-              r = requests.post(url, data=payload)
+              r = http.request(
+                  method,
+                  url,
+                  body=body,
+                  headers={"Content-Type": "application/json"}
+              )
+
               print('Response Status Code')
-              print(r.status_code)
-              if (r.status_code == 200) or (r.status_code == 504):
+              print(r.status)
+              if (r.status == 200) or (r.status == 504):
                 print('SUBMITTED POST REQUEST')
                 return cfnresponse.SUCCESS, None
+              else:
+                raise Exception('Error response body: %s', r.data)
             elif method == 'GET':
               print('GET')
-              r = requests.get(url)
+              r = http.request(method, url)
               print('Response Status Code')
-              print(r.status_code)
-              if r.status_code == 200:
+              print(r.status)
+              if r.status == 200:
                 print(r.json())
                 print('GET REQUEST COMPLETED')
                 return cfnresponse.SUCCESS, None
             elif method == 'DELETE':
               print('DELETE')
-              r = requests.delete(url)
+              r = http.request(method, url)
               print('Response Status Code')
-              print(r.status_code)
-              if r.status_code == 200:
+              print(r.status)
+              if r.status == 200:
                 print('DELETE REQUEST COMPLETED')
                 return cfnresponse.SUCCESS, None
             else:
