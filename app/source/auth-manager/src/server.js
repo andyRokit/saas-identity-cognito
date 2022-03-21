@@ -114,6 +114,7 @@ app.post('/auth', function (req, res) {
                     }
                     // These attributes are not mutable and should be removed from map.
                     delete userAttributes.email_verified;
+                    delete userAttributes.email;
                     delete userAttributes['custom:tenant_id'];
                     cognitoUser.completeNewPasswordChallenge(user.newPassword, userAttributes, this);
                 }
